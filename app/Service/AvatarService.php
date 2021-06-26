@@ -1,24 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Service;
 
 use App\Models\Avatar;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
-class AvatarController extends Controller
+class AvatarService
 {
-    public function avatar()
-    {
-        return view('posts.avatar');
-    }
-
     /**
      * @param Request $request
      * @return RedirectResponse

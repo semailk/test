@@ -7,7 +7,6 @@ use App\Models\Post;
 use App\Policies\AdminControllerPolicy;
 use App\Policies\PostPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -17,7 +16,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array
      */
     protected $policies = [
-         Post::class => PostPolicy::class,
+        Post::class => PostPolicy::class,
         AdminController::class => AdminControllerPolicy::class,
     ];
 

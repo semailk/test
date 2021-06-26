@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\MainController;
 use Illuminate\Support\Facades\Route;
 

@@ -4,15 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Service\AvatarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
-class AdminController extends AvatarController
+class AdminController extends Controller
 {
-    public function index()
+    /** @var AvatarService */
+    private $avatarService;
+
+    public function __construct(AvatarService $avatarService)
+    {
+        $this->avatarService = $avatarService;
+    }
+
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|RedirectResponse
+     */
+    public function index(): View
     {
         if (Gate::allows('has-admin', [self::class])) {
             $postPublished = Post::query()->where('published', '=', 1)->get();
@@ -55,14 +67,17 @@ class AdminController extends AvatarController
             return redirect()->route('index');
         }
         $post = Post::query()->findOrFail($id);
-
         Storage::disk('public')->delete($post->image);
         $post->delete();
 
         return redirect()->back();
     }
 
-    public function userEdit($id)
+    /**
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|RedirectResponse
+     */
+    public function userEdit($id): RedirectResponse
     {
         $user = User::query()->findOrFail($id);
         if (Gate::allows('user-edit', [self::class, $id])) {
@@ -73,7 +88,12 @@ class AdminController extends AvatarController
         return redirect()->route('index');
     }
 
-    public function userUpdate(Request $request, $id)
+    /**
+     * @param Request $request
+     * @param $id
+     * @return RedirectResponse
+     */
+    public function userUpdate(Request $request, $id): RedirectResponse
     {
         $roles = [
             'name' => 'required|min:3|max:100|string'
@@ -85,7 +105,7 @@ class AdminController extends AvatarController
         }
 
         if ($request->hasFile('avatar')) {
-            $this->avatarStore($request);
+            $this->avatarService->avatarStore($request);
         }
 
         User::query()->findOrFail($id)->update([

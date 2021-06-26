@@ -112,9 +112,9 @@ class MainController extends Controller
     /**
      * @param Request $request
      * @param int $id
-     * @return RedirectResponse
+     * //     * @return RedirectResponse
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int $id)
     {
         $roles = [
             'title' => 'required|string|min:5|max:255',
@@ -124,6 +124,7 @@ class MainController extends Controller
         $request->validate($roles);
 
         $post = Post::query()->findOrFail($id);
+
         if (!Gate::allows('update', $post)) {
             return redirect()->back();
         }

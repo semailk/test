@@ -18,6 +18,8 @@ class CreatePostTest extends E2ETestCase
     public function testPostCreate()
     {
         $user = User::factory()->create();
+        $this->actingAs($user);
+
         Storage::fake('public');
         $title = Str::random(40);
         $response = $this->json('POST', 'store', [
@@ -35,7 +37,7 @@ class CreatePostTest extends E2ETestCase
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('posts', [
-           'title' => $title
+            'title' => $title
         ]);
 
         Storage::disk('public')->assertExists($image->image);

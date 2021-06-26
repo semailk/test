@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -14,7 +16,7 @@ class MainController extends Controller
     /** @return View */
     public function index(): View
     {
-        $posts = Post::query()->where('published', '=', 1)->get();
+        $posts = Post::query()->where('published', '=', 1)->paginate(12);
 
         return view('index',
             [
@@ -47,7 +49,7 @@ class MainController extends Controller
                 $post = new Post();
                 $post->title = $request->get('title');
                 $post->description = $request->get('description');
-                $post->user_id = $request->user()->id;
+                $post->user_id = Auth::id();
                 $post->image = $image;
                 $post->save();
                 DB::commit();
@@ -59,7 +61,7 @@ class MainController extends Controller
                 ->withErrors(['errors' => 'Проверте правильность введенных данных.']);
         }
 
-        return \redirect()->back()
+        return \redirect()->back('201')
             ->with(['success' => 'Пост отправлен на проверку администратору.']);
     }
 
@@ -69,7 +71,7 @@ class MainController extends Controller
      */
     public function show(int $id): View
     {
-        $post = Post::query()->find($id);
+        $post = Post::query()->findOrFail($id);
 
         return \view('posts.show',
             [
@@ -83,24 +85,28 @@ class MainController extends Controller
      */
     public function delete(int $id): RedirectResponse
     {
-        $post = Post::query();
-        Storage::disk('public')->delete($post->findOrFail($id)->image);
-        $post->delete();
+        if (Gate::allows('delete', Post::find($id))) {
+            $post = Post::query();
+            Storage::disk('public')->delete($post->findOrFail($id)->image);
+            $post->delete();
+
+            return redirect()->route('index');
+        }
 
         return redirect()->route('index');
     }
 
-    /**
-     * @param int $id
-     * @return View
-     */
-    public function edit(int $id): View
+    public function edit(int $id)
     {
-        $post = Post::query()->findOrFail($id);
+        $post = Post::find($id);
 
-        return \view('posts.edit', [
-            'post' => $post
-        ]);
+        if (Gate::allows('edit', $post)) {
+            return \view('posts.edit', [
+                'post' => $post
+            ]);
+        }
+        return redirect()->route('index');
+
     }
 
     /**
@@ -118,6 +124,9 @@ class MainController extends Controller
         $request->validate($roles);
 
         $post = Post::query()->findOrFail($id);
+        if (!Gate::allows('update', $post)) {
+            return redirect()->back();
+        }
 
         if ($request->hasFile('image')) {
             Storage::disk('public')->delete($post->image);
@@ -128,7 +137,7 @@ class MainController extends Controller
         }
 
         $post->update([
-           'title' => $request->get('title'),
+            'title' => $request->get('title'),
             'description' => $request->get('description')
         ]);
 

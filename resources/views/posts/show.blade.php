@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-md-9"></div>
             <div class="col-md-3">
-                @if(\Illuminate\Support\Facades\Auth::id() == $post->user->id)
+                @can('edit', $post)
                     <a href="{{route('edit', $post->id)}}"> <button type="button" class="btn btn-warning">Редактировать</button></a>
                    <a href="{{route('delete', $post->id)}}"><button type="button" class="btn btn-danger">Удалить</button></a>
                 @endif
